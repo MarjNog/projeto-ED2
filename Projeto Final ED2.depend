@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1649546733 source:c:\users\marj\documents\marj\pogramaçao\c\projeto final ed2\main.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<assert.h>
+
