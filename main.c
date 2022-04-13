@@ -41,7 +41,7 @@ int compareOriginalTitle (const void *a, const void *b) {
 }
 
 int main (int ac, char **av){
-    int const max = 10000;
+    int const max = 10;
     tpFilm film;
     int menorIdx = -1;
 
@@ -51,9 +51,9 @@ int main (int ac, char **av){
     int countR = 0;
 
 
-    /*char temp[422];//debug
+    //char temp[422];//debug
     int countTest = 0;//debug
-    */
+
 
     //file handling
     FILE *arquivo_entrada = fopen("films.dat", "rb");
@@ -64,7 +64,7 @@ int main (int ac, char **av){
     assert(arquivo_entrada != NULL);
 
 
-    while ((fread(&film, sizeof(tpFilm), 1, arquivo_entrada) > 0) /*&& countTest < 50*/){
+    while ((fread(&film, sizeof(tpFilm), 1, arquivo_entrada) > 0) && countTest < 500){
         if (countM < max){//inicia o vetor com MAX
             vet[countM] = film;
             countM++;
@@ -74,14 +74,20 @@ int main (int ac, char **av){
                             //-1 se primeiro arg menor que segundo
         if(menorIdx >= 0 && strcmp(film.originalTitle, vet[menorIdx].originalTitle) < 0){
             if(countR > max){//se reservatorio cheio
+                printf("reservatorio cheio\n");
                 qsort(vet, max, sizeof(tpFilm), compareOriginalTitle);
+                //printf("qsort\n");
                 fwrite(vet, sizeof(vet), 1, arquivo_saida);
                 memcpy(vet, reservatorio, sizeof(tpFilm)*max);
+                printf("copia o vet\n");
                 countR = 0;
+                printf("countR\n");
                 fclose(arquivo_saida);
+                printf("fecha o arquivo\n");
                 countSaida++;
                 sprintf(saidaNome, "p%d.dat", countSaida);
                 arquivo_saida = fopen(saidaNome, "wb");
+                printf("fim if reservatorio\n");
             }
 
             reservatorio[countR] = film;
@@ -93,17 +99,17 @@ int main (int ac, char **av){
             printaFilmes(reservatorio, max);//debug
             printf("\\\\\\\\\\\\\\\\\\\\\n");//debug
             */
+        } else{
+            //finds min
+            menorIdx = findMinIdx(vet,max);
+            //strcpy(temp, vet[menorIdx].originalTitle);
+            fwrite (&vet[menorIdx], sizeof(tpFilm), 1, arquivo_saida);
+            countTest++;//debug
+            /*printaFilmes(vet, max);//debug
+            printf("Menor: %s\n", vet[menorIdx].originalTitle);//debug
+            printf("/////////////////////////\n");//debug
+            */
         }
-        //finds min
-        menorIdx = findMinIdx(vet,max);
-        //strcpy(temp, vet[menorIdx].originalTitle);
-        fwrite (&vet[menorIdx], sizeof(tpFilm), 1, arquivo_saida);
-        /*countTest++;//debug
-        printaFilmes(vet, max);//debug
-        printf("Menor: %s\n", vet[menorIdx].originalTitle);//debug
-        printf("/////////////////////////\n");//debug
-        */
-
     }
 
     if (countR != 0){
