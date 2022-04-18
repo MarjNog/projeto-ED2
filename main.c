@@ -41,8 +41,9 @@ int compareOriginalTitle (const void *a, const void *b) {
 }
 
 int main (int ac, char **av){
-    int const max = 10;
+    int const max = 10000;
     tpFilm film;
+    tpFilm ultimo;
     int menorIdx = -1;
 
     tpFilm *vet = malloc(max * sizeof(tpFilm));
@@ -50,8 +51,6 @@ int main (int ac, char **av){
     int countM = 0;
     int countR = 0;
 
-
-    //char temp[422];//debug
     int countTest = 0;//debug
 
 
@@ -63,8 +62,7 @@ int main (int ac, char **av){
     FILE *arquivo_saida = fopen(saidaNome, "wb");
     assert(arquivo_entrada != NULL);
 
-
-    while ((fread(&film, sizeof(tpFilm), 1, arquivo_entrada) > 0) && countTest < 500){
+    while ((fread(&film, sizeof(tpFilm), 1, arquivo_entrada) > 0)){
         if (countM < max){//inicia o vetor com MAX
             vet[countM] = film;
             countM++;
@@ -72,46 +70,33 @@ int main (int ac, char **av){
         }
         //se o proximo for menor que o menor atual, mandar pro reservatorio, repetir
                             //-1 se primeiro arg menor que segundo
-        if(menorIdx >= 0 && strcmp(film.originalTitle, vet[menorIdx].originalTitle) < 0){
+        if(menorIdx >= 0 && strcmp(film.originalTitle, ultimo.originalTitle) < 0){
             if(countR > max){//se reservatorio cheio
-                printf("reservatorio cheio\n");
                 qsort(vet, max, sizeof(tpFilm), compareOriginalTitle);
-                //printf("qsort\n");
                 fwrite(vet, sizeof(vet), 1, arquivo_saida);
                 memcpy(vet, reservatorio, sizeof(tpFilm)*max);
-                printf("copia o vet\n");
                 countR = 0;
-                printf("countR\n");
+
                 fclose(arquivo_saida);
-                printf("fecha o arquivo\n");
                 countSaida++;
                 sprintf(saidaNome, "p%d.dat", countSaida);
                 arquivo_saida = fopen(saidaNome, "wb");
-                printf("fim if reservatorio\n");
             }
-
             reservatorio[countR] = film;
             countR++;
-            if (countR%200==0){
-                printf("countR: %d\n", countR);
+            if (countR%10000==0){
+                printf("reservatorio cheio\n");
             }
-            /*printf("RESERVATORIO\n");//debug
-            printaFilmes(reservatorio, max);//debug
-            printf("\\\\\\\\\\\\\\\\\\\\\n");//debug
-            */
-        } else{
-            //finds min
+
+        } else{//finds min
             menorIdx = findMinIdx(vet,max);
-            //strcpy(temp, vet[menorIdx].originalTitle);
             fwrite (&vet[menorIdx], sizeof(tpFilm), 1, arquivo_saida);
-            countTest++;//debug
-            /*printaFilmes(vet, max);//debug
-            printf("Menor: %s\n", vet[menorIdx].originalTitle);//debug
-            printf("/////////////////////////\n");//debug
-            */
+            ultimo = vet[menorIdx];
+            vet[menorIdx] = film;
         }
     }
 
+    //se reservtorio n estiver vazio
     if (countR != 0){
         fclose(arquivo_saida);
         countSaida++;
@@ -119,16 +104,21 @@ int main (int ac, char **av){
         arquivo_saida = fopen(saidaNome, "wb");
         qsort(vet, countR, sizeof(tpFilm), compareOriginalTitle);
         fwrite(reservatorio, sizeof(tpFilm), countR, arquivo_saida);
-
     }
 
-    //printaFilmes(vet,max);
-
-    //printf("\n\n%s\n", vet[menorIdx].originalTitle);
-
-    //printf("\n\ntemp: %s", temp);
-
-    fclose(arquivo_entrada);
     fclose(arquivo_saida);
-    return EXIT_SUCCESS;
+    fclose(arquivo_entrada);
+
+    //intercalaçao otima F=3
+    int const totalSaida = countsaida;
+    int countEntrada=1;
+    countSaida++;
+    char EntradaNome1[15];
+    char EntradaNome2[15];
+    sprintf(EntradaNome1, "p%d.dat", countSaida);
+    countSaida++;
+    sprintf(EntradaNome2, "p%d.dat", countSaida);
+    sprintf(EntradaNome2, "p%d.dat", countSaida);
+
+    return 0;
 }
