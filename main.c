@@ -40,6 +40,13 @@ int compareOriginalTitle (const void *a, const void *b) {
     return strcmp (((struct stFilm *)a)->originalTitle,((struct stFilm *)b)->originalTitle);
 }
 
+void escreveTudo(FILE *fileIn, FILE *fileOut){
+    tpFilm buffer;
+    while ((fread(&buffer, sizeof(tpFilm), 1, fileIn) > 0)){
+        fwrite (&buffer, sizeof(tpFilm), 1, fileOut);
+    }
+}
+
 int main (int ac, char **av){
     int const max = 10000;
     tpFilm film;
@@ -50,9 +57,6 @@ int main (int ac, char **av){
     tpFilm *reservatorio = malloc(max * sizeof(tpFilm));
     int countM = 0;
     int countR = 0;
-
-    int countTest = 0;//debug
-
 
     //file handling
     FILE *arquivo_entrada = fopen("films.dat", "rb");
@@ -73,7 +77,9 @@ int main (int ac, char **av){
         if(menorIdx >= 0 && strcmp(film.originalTitle, ultimo.originalTitle) < 0){
             if(countR > max){//se reservatorio cheio
                 qsort(vet, max, sizeof(tpFilm), compareOriginalTitle);
-                fwrite(vet, sizeof(vet), 1, arquivo_saida);
+                for(int i = 0; i < max; i++){
+                 fwrite(&vet[i], sizeof(tpFilm), 1, arquivo_saida);
+                }
                 memcpy(vet, reservatorio, sizeof(tpFilm)*max);
                 countR = 0;
 
@@ -81,12 +87,10 @@ int main (int ac, char **av){
                 countSaida++;
                 sprintf(saidaNome, "p%d.dat", countSaida);
                 arquivo_saida = fopen(saidaNome, "wb");
+                printf("particao %d\n", countSaida);
             }
             reservatorio[countR] = film;
             countR++;
-            if (countR%10000==0){
-                printf("reservatorio cheio\n");
-            }
 
         } else{//finds min
             menorIdx = findMinIdx(vet,max);
@@ -109,16 +113,83 @@ int main (int ac, char **av){
     fclose(arquivo_saida);
     fclose(arquivo_entrada);
 
-    //intercalaçao otima F=3
-    int const totalSaida = countsaida;
-    int countEntrada=1;
-    countSaida++;
-    char EntradaNome1[15];
-    char EntradaNome2[15];
-    sprintf(EntradaNome1, "p%d.dat", countSaida);
-    countSaida++;
-    sprintf(EntradaNome2, "p%d.dat", countSaida);
-    sprintf(EntradaNome2, "p%d.dat", countSaida);
+    //intercalacao otima F=3
+    int iIn = 1;
+    char entrada1[10];
+    char entrada2[10];
+    sprintf(entrada1, "p%d.dat", iIn);
+    iIn++;
+    sprintf(entrada2, "p%d.dat", iIn);
+
+    FILE *fileIn1 = fopen(entrada1, "rb");
+    FILE *fileIn2 = fopen(entrada2, "rb");
+
+    int totalP=countSaida;
+    totalP++;
+    char saida[10];
+    sprintf(saida, "p%d.dat", totalP);
+    FILE *fileOut = fopen(saida, "wb");
+
+    tpFilm film1;
+    tpFilm film2;
+
+    int primeiro = 1;
+
+    while(iIn < totalP){
+        if(primeiro > 0){
+            fread(&film1, sizeof(tpFilm), 1, fileIn1);
+            fread(&film2, sizeof(tpFilm), 1, fileIn2);
+            primeiro = 0;
+        }
+                    //-1 se primeiro arg menor que segundo
+        if(strcmp(film1.originalTitle, film2.originalTitle) < 0){
+            fwrite (&film1, sizeof(tpFilm), 1, fileOut);
+            if (!(fread(&film1, sizeof(tpFilm), 1, fileIn1) > 0)){//se fim de arquivo1, escreve arqv2
+                printf("fim arqv1\n");
+                escreveTudo(fileIn2, fileOut);
+
+                fclose(fileIn1);
+                fclose(fileIn2);
+                fclose(fileOut);
+
+                iIn++;
+                sprintf(entrada1, "p%d.dat", iIn);
+                iIn++;
+                sprintf(entrada2, "p%d.dat", iIn);
+                fileIn1 = fopen(entrada1, "rb");
+                fileIn2 = fopen(entrada2, "rb");
+                totalP++;
+                if(iIn < totalP){
+                    sprintf(saida, "p%d.dat", totalP);
+                    fileOut = fopen(saida, "wb");
+                }
+
+            }
+        } else {
+            fwrite (&film2, sizeof(tpFilm), 1, fileOut);
+            if (!(fread(&film2, sizeof(tpFilm), 1, fileIn2) > 0)){//se fim de arquivo2, escreve arqv1
+                printf("fim arqv2\n");
+                escreveTudo(fileIn1, fileOut);
+
+                fclose(fileIn1);
+                fclose(fileIn2);
+                fclose(fileOut);
+
+                iIn++;
+                sprintf(entrada1, "p%d.dat", iIn);
+                iIn++;
+                sprintf(entrada2, "p%d.dat", iIn);
+                fileIn1 = fopen(entrada1, "rb");
+                fileIn2 = fopen(entrada2, "rb");
+                totalP++;
+                if(iIn < totalP){
+                    sprintf(saida, "p%d.dat", totalP);
+                    fileOut = fopen(saida, "wb");
+                }
+            }
+        }
+
+    }
 
     return 0;
 }
