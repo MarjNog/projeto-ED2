@@ -78,7 +78,7 @@ int main (int ac, char **av){
             if(countR > max){//se reservatorio cheio
                 qsort(vet, max, sizeof(tpFilm), compareOriginalTitle);
                 for(int i = 0; i < max; i++){
-                 fwrite(&vet[i], sizeof(tpFilm), 1, arquivo_saida);
+                  fwrite(&vet[i], sizeof(tpFilm), 1, arquivo_saida);
                 }
                 memcpy(vet, reservatorio, sizeof(tpFilm)*max);
                 countR = 0;
@@ -107,7 +107,7 @@ int main (int ac, char **av){
         sprintf(saidaNome, "p%d.dat", countSaida);
         arquivo_saida = fopen(saidaNome, "wb");
         qsort(vet, countR, sizeof(tpFilm), compareOriginalTitle);
-        fwrite(reservatorio, sizeof(tpFilm), countR, arquivo_saida);
+        fwrite(&reservatorio, sizeof(tpFilm), countR, arquivo_saida);
     }
 
     fclose(arquivo_saida);
